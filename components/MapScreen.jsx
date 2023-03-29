@@ -4,7 +4,14 @@ import { StyleSheet, View } from 'react-native';
 import { Marker } from 'react-native-maps';
 import { useState, useEffect } from 'react';
 
+const logo = {
+    uri: 'https://reactnative.dev/img/tiny_logo.png',
+};
+
 export default function MapScreen({ route, navigation }) {
+    const images = [
+        logo,
+    ]
     //   const markers = [{
     //     latitude: 58.01,
     //     longitude: 56.2,
@@ -17,24 +24,31 @@ export default function MapScreen({ route, navigation }) {
     const [markers, setMarkers] = useState([]);
 
     useEffect(() => {
-        if (route.params?.post) {
-            alert(route.params?.post)
+        if (route.params?.images) {
+            let new_markers = [...markers];
+            new_markers[route.params.index] = {
+                latitude: markers[route.params.index].latitude,
+                longitude: markers[route.params.index].longitude,
+                images: route.params.images,
+                index: route.params.index,
+            }
+            setMarkers(new_markers)
         }
-    }, [route.params?.post]);
+    }, [route.params?.images]);
 
     const onMapPressed = (e) => {
         const coordsPressed = e.nativeEvent.coordinate;
         const marker = {
             latitude: coordsPressed.latitude,
             longitude: coordsPressed.longitude,
-            key: 5,
+            images: [...images],
+            index: markers.length,
         }
         setMarkers(markers => [...markers, marker])
     }
 
     const onMarkerPressed = (e, marker) => {
         const coordsPressed = e.nativeEvent.coordinate;
-        // alert(JSON.stringify(coordsPressed))
         navigation.navigate("Marker", {
             coordinate: coordsPressed,
             marker: marker

@@ -6,15 +6,17 @@ import * as ImagePicker from 'expo-image-picker';
 import ImageList from './ImagesList';
 
 
+
 export default function MarkerScreen({ route, navigation }) {
     const [postText, setPostText] = React.useState('');
     const [images, setImages] = useState([]);
-    const { marker } = route.params;
-    console.log(marker.index)
+    const { marker_id } = route.params;
     useEffect(() => {
-        if (images.length == 0) {
-            setImages([...marker.images]);
-        }
+        global.db.transaction((tx) => {
+            tx.executeSql("SELECT * FROM image WHERE marker_id = ?;", [marker_id], (_, rows) =>
+                setImages(rows.rows._array)
+            );
+        });
     })
 
     const addImageAsync = async () => {
@@ -24,7 +26,17 @@ export default function MarkerScreen({ route, navigation }) {
         });
 
         if (!result.canceled) {
-            setImages([...images, { uri: result.assets[0].uri }])
+            global.db.transaction((tx) => {
+                tx.executeSql(
+                    "INSERT INTO image (uri, marker_id) VALUES (?, ?);",
+                    [result.assets[0].uri, marker_id],
+                    (_, rows) =>
+                    setImages([...images, {
+                        id: rows.insertId,
+                        uri: result.assets[0].uri,
+                    }])
+                )
+            })
         } else {
             alert("fail");
         }
@@ -36,17 +48,6 @@ export default function MarkerScreen({ route, navigation }) {
             <Button
                 title="Добавить фото"
                 onPress={addImageAsync}
-            />
-            <Button
-                title="Сохранить и выйти"
-                onPress={() => {
-                    // Pass and merge params back to home screen
-                    navigation.navigate({
-                        name: 'Home',
-                        params: { images: images, index: marker.index },
-                        merge: true,
-                    });
-                }}
             />
         </>
     );

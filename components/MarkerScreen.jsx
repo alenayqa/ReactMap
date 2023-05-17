@@ -7,6 +7,7 @@ import ImageList from './ImagesList';
 
 
 
+
 export default function MarkerScreen({ route, navigation }) {
     const [postText, setPostText] = React.useState('');
     const [images, setImages] = useState([]);
